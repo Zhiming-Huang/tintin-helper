@@ -1,0 +1,122 @@
+#nop --
+#nop Class Definitions
+#nop --
+
+#var pkuxkx-description {Login and session management for pkuxkx}
+#var pkuxkx-help {Use connect to connect to pkuxkx on the main port.}
+
+#nop --
+#nop Modloader Stuff
+#nop --
+
+#alias pkuxkx-register {
+	#if {@isloaded{events}} {
+		register_module pkuxkx
+	} {
+		fail_module pkuxkx
+	}
+}
+
+#tab connect
+#alias connect {
+	#showme attempt to create session for player %1.;
+	#switch {"%2"} {
+		#case {"tp"} {
+			#session pkuxkx:%1 {pkuxkxmud.com} {4069} {$players/%1_pkuxkx.player};
+		};
+		#case {"builder"} {
+			#session pkuxkx:%1 {pkuxkxmud.com} {4005} {$players/%1_pkuxkx.player};
+		};
+		#default {
+			#session pkuxkx:%1 {pkuxkxmud.com} {4000} {$players/%1_pkuxkx.player};
+		};
+	};
+	
+}
+
+#alias post_connect_load {
+	info Loading post-connect modules;
+	load_module prefs;
+	load_module layout;
+	load_module kal_comms;
+	load_module map;
+	load_module queues;
+	#foreach {$modules_on_connect[%*]} {module} {
+			load_module $module
+	};
+
+	info pkuxkx Loading pkuxkx modules;
+	#foreach {autobuf;autoheal;levels;meta;odometer;playermap} tmp {
+		load_module pkuxkx/$tmp
+	};
+	#line oneshot #tick {clear} {#buffer end} {0.5};
+}
+
+#act {^Enter your account name.} {
+	#send ${account_name};
+	#class account read {$players/${account_name}_pkuxkx.account}
+}
+
+#act {^Please enter your account password (or just press <ENTER> to abort login):} {
+	#send ${account_password};
+	#if {"${account_dont_forget_password}" != "true"} {
+		#showme <fcc>Forgetting password.;
+		#unvar account_password;
+	};
+}
+
+#act {^                             *** PRESS ENTER ***} {#send motd;#send 3 $char_name;#send 1}
+
+#act {^Welcome to the legendary lands of pkuxkx.} {post_connect_load}
+#act {^Reconnecting.} {post_connect_load}
+
+
+#nop -- Let's populate two tiles as samples as they're commonly asked for;
+event_register {variable MSDP_AREA_NAME} {right} {generate_area_info {%0} {%1} {%2}};
+event_register {variable MSDP_GROUP} {right} {generate_group_info {%0} {%1} {%2}};
+
+#alias generate_group_info {
+    syslog right debug generate new group info - %2;
+    #if {(!&{MSDP_GROUP}) || (&MSDP_GROUP[] == 0)} {
+		#list group_info create {<Ffff>Not Grouped};
+    } {
+    	#list group_info create {<Ffff>Group (level ${MSDP_GROUPLEVEL})};
+	};
+    #foreach *MSDP_GROUP[%*] {_idx} {
+		#var _flags $MSDP_GROUP[$_idx][flags];
+		#replace {_flags} {[ranged]} {>};
+        #format _line {<ffff>%-5s %-10.9s %-3s %-3s %-3s <ffff>%-4s}
+            {@withMe{$_idx}[$MSDP_GROUP[$_idx][class]]}
+            {$MSDP_GROUP[$_idx][name]}
+            {@colorPct{$MSDP_GROUP[$_idx][health]}}
+            {@colorPct{$MSDP_GROUP[$_idx][mana]}}
+            {@colorPct{$MSDP_GROUP[$_idx][stamina]}}
+            {$_flags};
+             #list group_info add {{$_line}};
+    };
+    #if {@is_alias{display_right_tiles}} {display_right_tiles}
+}
+
+#alias generate_area_info {
+    syslog right debug generate new area info - %1|%2|%3;
+    #var area_info {${MSDP_AREA_NAME}\nLevel: $MSDP_AREA_MINLEVEL - $MSDP_AREA_MAXLEVEL};
+    #if {@is_alias{display_right_tiles}} {display_right_tiles}
+}
+
+#nop -- generate_area_info;
+#nop -- generate_group_info;
+
+#tick {idle} {#cr} {30}
+
+#action {^You have no knowledge of the spell, '%1'.} {event_raise {unlearned spell} {%1}}
+#act {^You receive your reward for the kill, %1 experience points.} {
+    #buffer get _ripline -1;
+    #var _xp %1;
+    #regex {$_ripline} {{.*} is dead!} {
+        event_raise {mob kill} {&1} $_xp
+    } {
+        event_raise {mob kill} {unknown} $_xp
+    }
+}
+
+#nop vim: syntax=tt
