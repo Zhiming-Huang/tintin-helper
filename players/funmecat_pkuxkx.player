@@ -1,0 +1,10 @@
+#nop Kensho player file (imm)
+
+#list modules_on_connect create layout kal_comms map;
+
+#var account_name funmecat
+#var char_name 瑶瑶
+#var layout_preference full
+#var comms-session com
+
+#nop vim: syntax=tt

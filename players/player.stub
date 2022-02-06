@@ -1,6 +1,0 @@
-#nop Sample player file
-
-#list modules_on_connect create layout kallisti kal_comms;
-
-
-#nop vim: syntax=tt

@@ -28,7 +28,7 @@
 			#session pkuxkx:%1 {pkuxkxmud.com} {4005} {$players/%1_pkuxkx.player};
 		};
 		#default {
-			#session pkuxkx:%1 {pkuxkxmud.com} {4000} {$players/%1_pkuxkx.player};
+			#session pkuxkx:%1 {mud.pkuxkx.com} {8081} {$players/%1_pkuxkx.player};
 		};
 	};
 	
@@ -52,12 +52,12 @@
 	#line oneshot #tick {clear} {#buffer end} {0.5};
 }
 
-#act {^Enter your account name.} {
+#act {^您的英文名字} {
 	#send ${account_name};
 	#class account read {$players/${account_name}_pkuxkx.account}
 }
 
-#act {^Please enter your account password (or just press <ENTER> to abort login):} {
+#act {^此ID档案已存在，请输入密码} {
 	#send ${account_password};
 	#if {"${account_dont_forget_password}" != "true"} {
 		#showme <fcc>Forgetting password.;
@@ -65,10 +65,10 @@
 	};
 }
 
-#act {^                             *** PRESS ENTER ***} {#send motd;#send 3 $char_name;#send 1}
+#act {^<SUPPORT>} {#send motd;post_connect_load}
 
-#act {^Welcome to the legendary lands of pkuxkx.} {post_connect_load}
-#act {^Reconnecting.} {post_connect_load}
+#nop #act {^Welcome to the legendary lands of pkuxkx.} {post_connect_load}
+#nop #act {^Reconnecting.} {post_connect_load}
 
 
 #nop -- Let's populate two tiles as samples as they're commonly asked for;

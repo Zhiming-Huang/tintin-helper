@@ -37,8 +37,8 @@ load_module counter
 
 
 #nop -- This module will control kallisti accounts
-load_module kallisti
-
+#nop load_module kallisti
+load_module pkuxkx
 #nop -- end module loading
 
 #nop -- load additional configuration
